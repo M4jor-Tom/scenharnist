@@ -10,6 +10,12 @@ scenharnist = "scenharnist.cli:main"
 [project.optional-dependencies]
 dev = ["pytest>=8"]
 
+[tool.pytest.ini_options]
+markers = [
+    "prompting: live end-to-end prompt->video->describe eval (opt-in; needs agent + blender + db)",
+]
+addopts = "-m 'not prompting'"
+
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"

@@ -45,3 +45,16 @@ that nixpkgs pin (it transitively pulls `sphinx-9.1.0`, which is disabled for
 Python 3.11), so litellm is **not** included in the flake's Python — install it
 with `pip install -e .` (declared in `pyproject.toml`) or `pip install litellm`
 after entering the shell.
+
+## Prompting (eval) tests
+
+Live, opt-in tests that run a prompt end-to-end and have a vision model check the result.
+
+```bash
+# database wired via the waifus flake input; needs an API key + litellm:
+export ANTHROPIC_API_KEY=...
+nix run .#test-prompting            # runs all 5 cases (boxing, running, walking, burpees, salsa)
+nix run .#test-prompting -- -k salsa   # one case
+```
+
+They are deselected from the normal `pytest` run and FAIL RED (not skip) if the agent, Blender, or database is unavailable. `litellm` must be importable (`pip install litellm`). Point `SCENHARNIST_GLTF_ROOT` at a local checkout to skip re-fetching the large flake input.

@@ -55,7 +55,7 @@ def test_prompt_produces_expected_video(case, tmp_path):
                     os.path.join(out, "describe"), "grid", root)
     desc = describe_frames(stills, describer)
     hits = keyword_hits(desc, case["keywords"])
-    missed = [k for k in case["keywords"] if k not in hits]
     assert len(hits) >= case["min_hits"], (
         f"[{case['name']}] {len(hits)}/{case['min_hits']} keywords hit.\n"
-        f"hits={hits} missed={missed}\ndescription: {desc}")
+        f"hits={hits} missed={[k for k in case['keywords'] if k not in hits]}\n"
+        f"description: {desc}")

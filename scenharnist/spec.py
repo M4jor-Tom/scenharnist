@@ -1,4 +1,28 @@
-"""Scene spec: the single source of truth the model edits (full-replace)."""
+"""Scene spec: the single source of truth the model edits (full-replace).
+
+EXAMPLE_SPEC is the few-shot the model sees, so it demonstrates the whole
+discipline of a good clip, not just syntax:
+
+- The imported rest pose is a T-pose (arms straight out). EVERY limb that
+  should not be a T must be posed. Here both arms are held in a boxing guard
+  (Arm down+forward via -Z/-Y, Elbow raised via -X) for the entire clip.
+- Motion fills the FULL duration — keyframes run 0.0 .. 3.0 with no dead time.
+- Between actions the fighters return to guard, never to the rest/T-pose, and
+  the clip ENDS in guard.
+- Punches move the whole upper body: the striking Arm/Elbow plus an UpperBody
+  lean, not one bone in isolation.
+- Angles are local euler_deg; world coords (camera, root translation) are
+  Y-up with the character facing +Z.
+"""
+
+# Reusable calibrated poses (local euler_deg on the standard MMD rig).
+_GUARD = {"Arm.R": [0, -18, -72], "Elbow.R": [-115, 0, 0],
+          "Arm.L": [0, 18, 72], "Elbow.L": [-115, 0, 0]}
+_JAB_R = {"Arm.R": [0, -80, -12], "Elbow.R": [0, 0, -8]}   # right straight, toward opponent
+_HOOK_R = {"Arm.R": [0, -52, -46], "Elbow.R": [-70, 0, -35]}
+
+def _k(*pairs):
+    return [{"t": t, "euler_deg": e} for t, e in pairs]
 
 EXAMPLE_SPEC = {
     "fps": 24,
@@ -7,27 +31,41 @@ EXAMPLE_SPEC = {
         {
             "name": "Augusta",
             "gltf": "gltf/Augusta.gltf/Augusta.gltf",
-            "root": {"translation": [-0.6, 0, 0], "yaw_deg": 90},
+            "root": {"translation": [-0.52, 0, 0], "yaw_deg": 90},
             "bone_tracks": {
-                "Arm.R": [{"t": 0.0, "euler_deg": [0, 0, -70]},
-                          {"t": 0.4, "euler_deg": [0, 0, -10]}],
+                # jab, jab, hook — always snapping back to guard.
+                "Arm.R": _k((0.0, [0, 0, 0]), (0.3, _GUARD["Arm.R"]), (0.6, _JAB_R["Arm.R"]),
+                            (0.9, _GUARD["Arm.R"]), (1.5, _JAB_R["Arm.R"]), (1.8, _GUARD["Arm.R"]),
+                            (2.3, _HOOK_R["Arm.R"]), (2.7, _GUARD["Arm.R"]), (3.0, _GUARD["Arm.R"])),
+                "Elbow.R": _k((0.0, [0, 0, 0]), (0.3, _GUARD["Elbow.R"]), (0.6, _JAB_R["Elbow.R"]),
+                              (0.9, _GUARD["Elbow.R"]), (1.5, _JAB_R["Elbow.R"]), (1.8, _GUARD["Elbow.R"]),
+                              (2.3, _HOOK_R["Elbow.R"]), (2.7, _GUARD["Elbow.R"]), (3.0, _GUARD["Elbow.R"])),
+                "Arm.L": _k((0.0, [0, 0, 0]), (0.3, _GUARD["Arm.L"]), (3.0, _GUARD["Arm.L"])),
+                "Elbow.L": _k((0.0, [0, 0, 0]), (0.3, _GUARD["Elbow.L"]), (3.0, _GUARD["Elbow.L"])),
+                "UpperBody": _k((0.0, [0, 0, 0]), (0.3, [6, 0, 0]), (0.6, [10, -6, 0]), (0.9, [6, 0, 0]),
+                                (1.5, [10, -6, 0]), (1.8, [6, 0, 0]), (2.3, [9, -10, 0]), (2.7, [6, 0, 0]),
+                                (3.0, [6, 0, 0])),
             },
-            "morph_tracks": {
-                "Anger": [{"t": 0.0, "weight": 0.0}, {"t": 0.4, "weight": 1.0}],
-            },
+            "morph_tracks": {"Anger": [{"t": 0.0, "weight": 0.2}, {"t": 3.0, "weight": 0.5}]},
         },
         {
             "name": "Baizhi",
             "gltf": "gltf/Baizhi.gltf/Baizhi.gltf",
-            "root": {"translation": [0.6, 0, 0], "yaw_deg": -90},
+            "root": {"translation": [0.52, 0, 0], "yaw_deg": -90},
             "bone_tracks": {
-                "Arm.L": [{"t": 0.0, "euler_deg": [0, 0, 70]},
-                          {"t": 0.4, "euler_deg": [0, 0, 20]}],
+                "Arm.R": _k((0.0, [0, 0, 0]), (0.3, _GUARD["Arm.R"]), (1.2, _JAB_R["Arm.R"]),
+                            (1.5, _GUARD["Arm.R"]), (3.0, _GUARD["Arm.R"])),
+                "Elbow.R": _k((0.0, [0, 0, 0]), (0.3, _GUARD["Elbow.R"]), (1.2, _JAB_R["Elbow.R"]),
+                              (1.5, _GUARD["Elbow.R"]), (3.0, _GUARD["Elbow.R"])),
+                "Arm.L": _k((0.0, [0, 0, 0]), (0.3, _GUARD["Arm.L"]), (3.0, _GUARD["Arm.L"])),
+                "Elbow.L": _k((0.0, [0, 0, 0]), (0.3, _GUARD["Elbow.L"]), (3.0, _GUARD["Elbow.L"])),
+                "UpperBody": _k((0.0, [0, 0, 0]), (0.3, [6, 0, 0]), (0.6, [-6, 0, 0]), (0.9, [6, 0, 0]),
+                                (1.2, [10, 6, 0]), (1.5, [6, 0, 0]), (3.0, [6, 0, 0])),
             },
             "morph_tracks": {},
         },
     ],
-    "camera": [{"t": 0.0, "position": [0, 1.2, 3.0], "look_at": [0, 1.0, 0]}],
+    "camera": [{"t": 0.0, "position": [0, 1.2, 3.7], "look_at": [0, 1.02, 0]}],
 }
 
 def _num(x):

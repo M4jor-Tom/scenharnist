@@ -169,7 +169,7 @@ git commit -m "feat: central resolve_gltf_root() shared by CLI and tests"
 - Produces: `CASES: list[dict]` and `keyword_hits(description: str, keywords: list[str]) -> list[str]` in `tests/prompting_cases.py`.
 - Consumes: nothing.
 
-- [ ] **Step 1: Register the marker and deselect it by default in `pyproject.toml`**
+- [x] **Step 1: Register the marker and deselect it by default in `pyproject.toml`**
 
 Append to `pyproject.toml`:
 
@@ -181,7 +181,7 @@ markers = [
 addopts = "-m 'not prompting'"
 ```
 
-- [ ] **Step 2: Make `tests/` sibling modules importable — `tests/conftest.py`**
+- [x] **Step 2: Make `tests/` sibling modules importable — `tests/conftest.py`**
 
 ```python
 import os, sys
@@ -189,7 +189,7 @@ import os, sys
 sys.path.insert(0, os.path.dirname(__file__))
 ```
 
-- [ ] **Step 3: Write the failing test**
+- [x] **Step 3: Write the failing test**
 
 `tests/test_prompting_cases.py`:
 
@@ -212,12 +212,12 @@ def test_cases_well_formed_and_complete():
     assert {"boxing", "running", "walking", "burpees", "salsa"} <= names
 ```
 
-- [ ] **Step 4: Run test to verify it fails**
+- [x] **Step 4: Run test to verify it fails**
 
 Run: `bash .superpowers/sdd/pytest.sh tests/test_prompting_cases.py -q`
 Expected: FAIL (module `prompting_cases` not found).
 
-- [ ] **Step 5: Write `tests/prompting_cases.py`**
+- [x] **Step 5: Write `tests/prompting_cases.py`**
 
 ```python
 """Case data + keyword-match logic for the live prompting eval tests."""
@@ -251,17 +251,17 @@ def keyword_hits(description, keywords):
     return [k for k in keywords if k.lower() in d]
 ```
 
-- [ ] **Step 6: Run test to verify it passes**
+- [x] **Step 6: Run test to verify it passes**
 
 Run: `bash .superpowers/sdd/pytest.sh tests/test_prompting_cases.py -q`
 Expected: PASS (2 passed).
 
-- [ ] **Step 7: Confirm the default suite is unchanged and green**
+- [x] **Step 7: Confirm the default suite is unchanged and green**
 
 Run: `bash .superpowers/sdd/pytest.sh -q`
 Expected: all pass, 1 skipped. (No prompting-marked test exists yet, so `addopts` is inert here.)
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 cd /home/theta/.vault/repos/scenharnist

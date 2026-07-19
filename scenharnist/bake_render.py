@@ -23,6 +23,12 @@ scene.frame_end = max(2, int(round(dur * fps)))
 def t_to_frame(t):
     return 1 + int(round(float(t) * fps))
 
+def y2z(v):
+    # Spec world is Y-up, right-handed, character faces +Z (the convention the
+    # rig digest promises the model). Blender is Z-up: map (x,y,z) -> (x,-z,y).
+    x, y, z = v
+    return (x, -z, y)
+
 def import_char(c):
     path = os.path.join(GLTF_ROOT, c["gltf"]) if not os.path.isabs(c["gltf"]) else c["gltf"]
     before = set(bpy.data.objects)
@@ -35,7 +41,7 @@ def import_char(c):
     tx = root.get("translation", [0, 0, 0])
     holder = arm or (new[0] if new else None)
     if holder:
-        holder.location = (tx[0], tx[1], tx[2])
+        holder.location = y2z(tx)
         holder.rotation_mode = "XYZ"
         holder.rotation_euler = (0, 0, math.radians(root.get("yaw_deg", 0)))
     return arm, meshes
@@ -46,6 +52,7 @@ for c in spec["characters"]:
     # Bone tracks.
     if arm:
         bpy.context.view_layer.objects.active = arm
+        arm.select_set(True)  # operator mode_set requires the armature selected, not just active
         bpy.ops.object.mode_set(mode="POSE")
         for en_bone, frames in (c.get("bone_tracks") or {}).items():
             cjk = rt["bones"].get(en_bone)
@@ -81,13 +88,35 @@ con = cam.constraints.new("TRACK_TO")
 con.target = target
 con.track_axis = "TRACK_NEGATIVE_Z"
 con.up_axis = "UP_Y"
-for fr in spec.get("camera", [{"t": 0, "position": [0, 1.2, 3], "look_at": [0, 1, 0]}]):
-    f = t_to_frame(fr["t"])
-    cam.location = tuple(fr["position"]); cam.keyframe_insert("location", frame=f)
-    target.location = tuple(fr["look_at"]); target.keyframe_insert("location", frame=f)
-light_data = bpy.data.lights.new("Sun", type="SUN"); light_data.energy = 3.0
-light = bpy.data.objects.new("Sun", light_data); light.location = (2, -2, 4)
+cam_keys = spec.get("camera")
+if cam_keys:
+    # Explicit camera: convert each keyframe from spec Y-up to Blender Z-up.
+    for fr in cam_keys:
+        f = t_to_frame(fr["t"])
+        cam.location = y2z(fr["position"]); cam.keyframe_insert("location", frame=f)
+        target.location = y2z(fr["look_at"]); target.keyframe_insert("location", frame=f)
+else:
+    # No camera authored: auto-frame the whole scene so the shot is never empty.
+    from mathutils import Vector
+    mn = Vector((1e9, 1e9, 1e9)); mx = Vector((-1e9, -1e9, -1e9))
+    for o in scene.objects:
+        if o.type == "MESH":
+            for corner in o.bound_box:
+                w = o.matrix_world @ Vector(corner)
+                for i in range(3):
+                    mn[i] = min(mn[i], w[i]); mx[i] = max(mx[i], w[i])
+    ctr = (mn + mx) / 2
+    span = max((mx - mn).x, (mx - mn).z, 0.1)
+    cam.location = (ctr.x, ctr.y - (span * 2.2 + 1.5), ctr.z)
+    target.location = ctr
+
+light_data = bpy.data.lights.new("Sun", type="SUN"); light_data.energy = 3.5
+light = bpy.data.objects.new("Sun", light_data)
+light.rotation_euler = (0.9, 0.1, 0.5)  # tilt so it lights the forward-facing side, not just tops
 scene.collection.objects.link(light)
+# Soft world fill so shadowed sides aren't pure black.
+world = bpy.data.worlds.new("World"); scene.world = world; world.use_nodes = True
+world.node_tree.nodes["Background"].inputs[1].default_value = 0.5
 scene.render.engine = "BLENDER_EEVEE_NEXT" if "BLENDER_EEVEE_NEXT" in \
     {i.identifier for i in bpy.types.RenderSettings.bl_rna.properties["engine"].enum_items} else "BLENDER_EEVEE"
 
@@ -108,6 +137,9 @@ if MODE == "grid":
     for i, t in enumerate(times):
         render_still(t_to_frame(t), os.path.join(OUT_DIR, f"frame_{i:02d}_t{t:.2f}.png"))
 elif MODE == "video":
+    # Blender 5.x gates FFMPEG behind media_type=VIDEO; 4.x exposes it directly.
+    if hasattr(scene.render.image_settings, "media_type"):
+        scene.render.image_settings.media_type = "VIDEO"
     scene.render.image_settings.file_format = "FFMPEG"
     scene.render.ffmpeg.format = "MPEG4"
     scene.render.ffmpeg.codec = "H264"

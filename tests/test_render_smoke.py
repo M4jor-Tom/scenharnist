@@ -14,3 +14,8 @@ def test_grid_render_produces_frames(tmp_path):
                for c in EXAMPLE_SPEC["characters"]}
     out = render(str(spec_path), resmaps, str(tmp_path / "out"), "grid", GLTF_ROOT)
     assert out and all(os.path.exists(p) for p in out)
+    # A black/empty frame (mis-framed camera or no light) is a few KB; a real
+    # render of the characters is hundreds of KB. Guard against the empty-frame
+    # regression the coordinate/camera bug produced.
+    assert all(os.path.getsize(p) > 100_000 for p in out), \
+        "frames too small — characters likely off-camera or unlit"

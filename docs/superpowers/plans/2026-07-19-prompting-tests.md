@@ -378,7 +378,7 @@ git commit -m "feat: live prompting eval test (describe grid, keyword threshold,
 
 **Interfaces:** none (packaging only).
 
-- [ ] **Step 1: Add the `waifus` input and the `test-prompting` app to `flake.nix`**
+- [x] **Step 1: Add the `waifus` input and the `test-prompting` app to `flake.nix`**
 
 Add the input alongside the existing `inputs`:
 
@@ -408,14 +408,14 @@ Inside the per-system attrset (next to `apps.default` / `apps.test`), add:
 
 (`deps` and `py` are the existing let-bindings from the current flake: `py` is the python env with pytest, `deps = [ py pkgs.blender ]`. The prompting run needs `litellm` + an API key too; if litellm is not importable or no key is set, the tests fail red by design — document this in Step 3.)
 
-- [ ] **Step 2: Verify the flake evaluates**
+- [x] **Step 2: Verify the flake evaluates**
 
 Run: `cd /home/theta/.vault/repos/scenharnist && nix flake lock 2>&1 | tail -5 && nix flake check --no-build 2>&1 | tail -5`
 Expected: the `waifus` input locks in `flake.lock` and evaluation passes.
 
 Note: fetching `waifus` (a large asset repo) may be heavy. If the fetch is prohibitive in this environment, instead confirm the flake expression parses with `nix flake metadata 2>&1 | tail -20` (which still resolves the input reference) and record in the report that the first real `nix run .#test-prompting` performs the DB fetch; local runs can set `SCENHARNIST_GLTF_ROOT` to skip it.
 
-- [ ] **Step 3: Document the prompting run in `README.md`**
+- [x] **Step 3: Document the prompting run in `README.md`**
 
 Add a short section to `README.md`:
 
@@ -434,7 +434,7 @@ nix run .#test-prompting -- -k salsa   # one case
 They are deselected from the normal `pytest` run and FAIL RED (not skip) if the agent, Blender, or database is unavailable. `litellm` must be importable (`pip install litellm`). Point `SCENHARNIST_GLTF_ROOT` at a local checkout to skip re-fetching the large flake input.
 ````
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 cd /home/theta/.vault/repos/scenharnist

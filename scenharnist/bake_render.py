@@ -12,7 +12,6 @@ spec = load(SPEC_PATH)
 resmaps = load(RESMAPS_PATH)
 fps = int(spec["fps"])
 dur = float(spec["duration"])
-scene = bpy.context.scene
 
 # Fresh scene.
 bpy.ops.wm.read_factory_settings(use_empty=True)

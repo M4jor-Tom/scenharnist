@@ -87,22 +87,27 @@ CONTROL_BONES = {
     "Leg", "Knee", "Ankle", "Toe",
 }
 
-_SUFFIX = {".L": ".L", ".R": ".R"}
+SIDE_SUFFIXES = (".L", ".R")
 _PREFIX = {"左": ".L", "右": ".R"}
+
+def strip_side(name: str) -> tuple[str, str]:
+    """Split a side marker off a bone name -> (base, side), side is ".L"/".R"/"".
+
+    Handles the English ".L"/".R" suffix and the CJK 左/右 prefix. The single
+    place that knows what a side marker looks like — used by translate_bone and
+    by rigdigest's control-surface filtering.
+    """
+    for suf in SIDE_SUFFIXES:
+        if name.endswith(suf):
+            return name[: -len(suf)], suf
+    for pre, s in _PREFIX.items():
+        if name.startswith(pre):
+            return name[len(pre):], s
+    return name, ""
 
 def translate_bone(cjk: str) -> str:
     """CJK MMD bone name -> English, preserving .L/.R side. Unknown -> unchanged."""
-    side = ""
-    base = cjk
-    for suf, s in _SUFFIX.items():
-        if base.endswith(suf):
-            side, base = s, base[: -len(suf)]
-            break
-    else:
-        for pre, s in _PREFIX.items():
-            if base.startswith(pre):
-                side, base = s, base[len(pre):]
-                break
+    base, side = strip_side(cjk)
     if base in BONE_MAP:
         return BONE_MAP[base] + side
     return cjk

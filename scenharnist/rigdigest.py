@@ -1,5 +1,6 @@
 import json
-from .bonemap import translate_bone, MORPH_MAP, CONTROL_BONES
+from functools import lru_cache
+from .bonemap import translate_bone, strip_side, MORPH_MAP, CONTROL_BONES
 
 _HINT = (
     "Bones are driven with local euler_deg rotations (degrees). Rest pose is "
@@ -8,7 +9,10 @@ _HINT = (
     "iteration. Morphs take a weight 0..1. Only the names below exist."
 )
 
+@lru_cache(maxsize=None)
 def _load(gltf_path):
+    # ponytail: cache the multi-MB parse so digest() + resolution_table() on the
+    # same path (as build_characters does per character) parse it once, not twice.
     with open(gltf_path, encoding="utf-8") as f:
         return json.load(f)
 
@@ -20,7 +24,7 @@ def _bone_pairs(d):
     for ji in joints:
         cjk = d["nodes"][ji].get("name", "")
         en = translate_bone(cjk)
-        base = en[:-2] if en.endswith((".L", ".R")) else en
+        base, _ = strip_side(en)
         if base in CONTROL_BONES:
             yield en, cjk
 

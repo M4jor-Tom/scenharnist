@@ -280,7 +280,7 @@ git commit -m "feat: prompting marker (deselected by default) + cases + keyword_
 - Consumes: `resolve_gltf_root` (Task 1); `CASES`, `keyword_hits` (Task 2); `build_characters` (cli), `run_loop` (loop), `render`/`blender_available` (render).
 - Produces: `describe_frames(frame_paths, model) -> str`; parametrized `test_prompt_produces_expected_video`.
 
-- [ ] **Step 1: Write `tests/test_prompting.py`**
+- [x] **Step 1: Write `tests/test_prompting.py`**
 
 ```python
 import base64, os, pytest
@@ -346,22 +346,22 @@ def test_prompt_produces_expected_video(case, tmp_path):
         f"hits={hits} missed={missed}\ndescription: {desc}")
 ```
 
-- [ ] **Step 2: Verify default collection excludes prompting AND the module imports cleanly (no litellm/key)**
+- [x] **Step 2: Verify default collection excludes prompting AND the module imports cleanly (no litellm/key)**
 
 Run: `bash .superpowers/sdd/pytest.sh -q`
 Expected: all pass, 1 skipped. The prompting tests are deselected (they appear as deselected, not run). Crucially, `test_prompting.py` imports without error even though litellm is absent (litellm is imported only inside functions).
 
-- [ ] **Step 3: Verify the prompting marker selects exactly the 5 cases**
+- [x] **Step 3: Verify the prompting marker selects exactly the 5 cases**
 
 Run: `bash .superpowers/sdd/pytest.sh -m prompting --collect-only -q`
 Expected: 5 items listed: `...::test_prompt_produces_expected_video[boxing]` … `[salsa]`.
 
-- [ ] **Step 4: Verify red-not-skip when the agent is unavailable**
+- [x] **Step 4: Verify red-not-skip when the agent is unavailable**
 
 Run: `bash .superpowers/sdd/pytest.sh -m prompting -k boxing -q`
 Expected: 1 FAILED (not skipped), failing fast with `agent unavailable: ...`. In the pytest.sh env the reason is `litellm not importable` (litellm isn't in that env); on a machine with litellm but no key it would be `no API key ...`. Either reason is a RED fail — that is the behavior being verified (red, not skip).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /home/theta/.vault/repos/scenharnist

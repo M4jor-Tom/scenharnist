@@ -58,6 +58,7 @@ def run_loop(prompt, characters, model, out_dir, gltf_root,
     surfaces = {c["name"]: c["digest"] for c in characters}
     resmaps = {c["name"]: c["resmap"] for c in characters}
 
+    scene_path = os.path.join(out_dir, "scene.json")
     messages = [{"role": "system", "content": _system(prompt, characters)},
                 {"role": "user", "content": "Author the first version, then call set_scene."}]
     final_spec = None
@@ -83,11 +84,10 @@ def run_loop(prompt, characters, model, out_dir, gltf_root,
             continue
 
         final_spec = spec
-        spec_path = os.path.join(out_dir, "scene.json")
-        with open(spec_path, "w", encoding="utf-8") as f:
+        with open(scene_path, "w", encoding="utf-8") as f:
             json.dump(spec, f, ensure_ascii=False, indent=2)
         iter_dir = os.path.join(out_dir, "iterations", f"step_{step:02d}")
-        frames = render_fn(spec_path, resmaps, iter_dir, "grid", gltf_root)
+        frames = render_fn(scene_path, resmaps, iter_dir, "grid", gltf_root)
         content = [{"type": "text",
                     "text": f"Rendered frames (step {step}). Fix issues or finish."}]
         content += _image_content(frames)
@@ -97,7 +97,6 @@ def run_loop(prompt, characters, model, out_dir, gltf_root,
 
     if final_spec is None:
         raise RuntimeError("model never produced a valid spec")
-    spec_path = os.path.join(out_dir, "scene.json")
-    render_fn(spec_path, resmaps, out_dir, "video", gltf_root)
-    render_fn(spec_path, resmaps, out_dir, "glb", gltf_root)
+    render_fn(scene_path, resmaps, out_dir, "video", gltf_root)
+    render_fn(scene_path, resmaps, out_dir, "glb", gltf_root)
     return final_spec

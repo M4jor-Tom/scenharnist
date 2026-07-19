@@ -1,0 +1,15 @@
+[project]
+name = "scenharnist"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = ["litellm>=1.40"]
+
+[project.scripts]
+scenharnist = "scenharnist.cli:main"
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"

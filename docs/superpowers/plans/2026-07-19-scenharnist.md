@@ -31,7 +31,7 @@
 **Interfaces:**
 - Produces: `BONE_MAP: dict[str,str]`, `MORPH_MAP: dict[str,str]`, `translate_bone(cjk: str) -> str`, `CONTROL_BONES: set[str]` (whitelist of English base names exposed to the model).
 
-- [ ] **Step 1: Write `pyproject.toml`**
+- [x] **Step 1: Write `pyproject.toml`**
 
 ```toml
 [project]
@@ -51,7 +51,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 ```
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 `tests/test_bonemap.py`:
 
@@ -79,17 +79,17 @@ def test_morph_map_has_blink():
     assert "まばたき" in MORPH_MAP and MORPH_MAP["まばたき"] == "Blink"
 ```
 
-- [ ] **Step 3: Run test to verify it fails**
+- [x] **Step 3: Run test to verify it fails**
 
 Run: `cd /home/theta/.vault/repos/scenharnist && python -m pytest tests/test_bonemap.py -q`
 Expected: FAIL (module `scenharnist.bonemap` not found).
 
-- [ ] **Step 4: Write `scenharnist/__init__.py`** (empty file)
+- [x] **Step 4: Write `scenharnist/__init__.py`** (empty file)
 
 ```python
 ```
 
-- [ ] **Step 5: Write `scenharnist/bonemap.py`**
+- [x] **Step 5: Write `scenharnist/bonemap.py`**
 
 Copy the `BONE_MAP = { ... }` dict **verbatim** from `/home/theta/.vault/repos/waifus.gltf/scripts/pmx_bone_rename.py` (the dict literal, ~70 lines starting at `BONE_MAP = {`). Then append the code below:
 
@@ -137,12 +137,12 @@ def translate_bone(cjk: str) -> str:
     return cjk
 ```
 
-- [ ] **Step 6: Run test to verify it passes**
+- [x] **Step 6: Run test to verify it passes**
 
 Run: `cd /home/theta/.vault/repos/scenharnist && python -m pytest tests/test_bonemap.py -q`
 Expected: PASS (6 passed).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 cd /home/theta/.vault/repos/scenharnist
@@ -164,7 +164,7 @@ git commit -m "feat: bone/morph maps + scaffolding"
   - `digest(gltf_path: str) -> dict` returning `{"bones": [str], "morphs": [str], "hint": str}` — English names the model may use.
   - `resolution_table(gltf_path: str) -> dict` returning `{"bones": {en: cjk}, "morphs": {en: cjk}}`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `tests/test_rigdigest.py`:
 
@@ -194,12 +194,12 @@ def test_digest_morphs_are_english():
     assert "Blink" in d["morphs"] or "Serious" in d["morphs"]
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd /home/theta/.vault/repos/scenharnist && python -m pytest tests/test_rigdigest.py -q`
 Expected: FAIL (module `scenharnist.rigdigest` not found).
 
-- [ ] **Step 3: Write `scenharnist/rigdigest.py`**
+- [x] **Step 3: Write `scenharnist/rigdigest.py`**
 
 ```python
 import json
@@ -250,12 +250,12 @@ def resolution_table(gltf_path):
     }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd /home/theta/.vault/repos/scenharnist && python -m pytest tests/test_rigdigest.py -q`
 Expected: PASS (3 passed; or skipped if waifus.gltf absent — run where it exists).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /home/theta/.vault/repos/scenharnist
@@ -276,7 +276,7 @@ git commit -m "feat: rigdigest control surface + resolution table"
   - `validate(spec: dict, surfaces: dict) -> list[str]` — returns human-readable error strings (empty = valid). `surfaces` maps `char_name -> digest_dict` (from Task 2).
   - `EXAMPLE_SPEC: dict` — a minimal valid two-character spec used in prompts and tests.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `tests/test_spec.py`:
 
@@ -327,12 +327,12 @@ def test_example_spec_is_self_consistent():
     assert validate(EXAMPLE_SPEC, surf) == []
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd /home/theta/.vault/repos/scenharnist && python -m pytest tests/test_spec.py -q`
 Expected: FAIL (module `scenharnist.spec` not found).
 
-- [ ] **Step 3: Write `scenharnist/spec.py`**
+- [x] **Step 3: Write `scenharnist/spec.py`**
 
 ```python
 """Scene spec: the single source of truth the model edits (full-replace)."""
@@ -417,12 +417,12 @@ def validate(spec, surfaces):
     return errs
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd /home/theta/.vault/repos/scenharnist && python -m pytest tests/test_spec.py -q`
 Expected: PASS (5 passed).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /home/theta/.vault/repos/scenharnist
@@ -447,7 +447,7 @@ git commit -m "feat: scene spec schema + validation"
 
 **Note:** `bake_render.py` runs inside Blender's bundled Python (has `bpy`), so it is not unit-tested directly; the smoke test drives it through `render()` and is skipped when `blender` is absent.
 
-- [ ] **Step 1: Write `scenharnist/render.py`**
+- [x] **Step 1: Write `scenharnist/render.py`**
 
 ```python
 import json, os, shutil, subprocess
@@ -474,7 +474,7 @@ def render(spec_path, resmaps, out_dir, mode, gltf_root):
         return json.load(f)
 ```
 
-- [ ] **Step 2: Write `scenharnist/bake_render.py`** (Blender-python)
+- [x] **Step 2: Write `scenharnist/bake_render.py`** (Blender-python)
 
 ```python
 """Runs inside Blender: blender -b -P bake_render.py -- spec resmaps out mode gltf_root."""
@@ -604,7 +604,7 @@ with open(os.path.join(OUT_DIR, f"_manifest_{MODE}.json"), "w", encoding="utf-8"
     json.dump(produced, f)
 ```
 
-- [ ] **Step 3: Write the smoke test**
+- [x] **Step 3: Write the smoke test**
 
 `tests/test_render_smoke.py`:
 
@@ -627,12 +627,12 @@ def test_grid_render_produces_frames(tmp_path):
     assert out and all(os.path.exists(p) for p in out)
 ```
 
-- [ ] **Step 4: Run test**
+- [x] **Step 4: Run test**
 
 Run: `cd /home/theta/.vault/repos/scenharnist && python -m pytest tests/test_render_smoke.py -q`
 Expected: PASS if Blender present, else SKIPPED. Iterate on `bake_render.py` until frames render (this is where MMD bone-axis reality is confirmed).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /home/theta/.vault/repos/scenharnist
@@ -652,7 +652,7 @@ git commit -m "feat: Blender bake+render (grid/video/glb)"
 - Consumes: `validate` (Task 3), `render` (Task 4).
 - Produces: `run_loop(prompt, characters, model, out_dir, gltf_root, max_steps=5, completion=None, render_fn=None) -> dict` where `characters` is a list of `{"name","gltf","digest","resmap"}`. Returns the final spec dict. `completion` and `render_fn` are injectable for testing (default to `litellm.completion` and `render.render`).
 
-- [ ] **Step 1: Write the failing test** (mocks LLM + renderer — no Blender, no network)
+- [x] **Step 1: Write the failing test** (mocks LLM + renderer — no Blender, no network)
 
 `tests/test_loop.py`:
 
@@ -708,12 +708,12 @@ def test_loop_feeds_validation_errors_back(tmp_path):
     assert "Tail" in flat
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd /home/theta/.vault/repos/scenharnist && python -m pytest tests/test_loop.py -q`
 Expected: FAIL (module `scenharnist.loop` not found).
 
-- [ ] **Step 3: Write `scenharnist/loop.py`**
+- [x] **Step 3: Write `scenharnist/loop.py`**
 
 ```python
 import base64, json, os
@@ -817,12 +817,12 @@ def run_loop(prompt, characters, model, out_dir, gltf_root,
     return final_spec
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd /home/theta/.vault/repos/scenharnist && python -m pytest tests/test_loop.py -q`
 Expected: PASS (2 passed).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /home/theta/.vault/repos/scenharnist
@@ -845,7 +845,7 @@ git commit -m "feat: LiteLLM agent loop with vision feedback"
   - `build_characters(names, gltf_root) -> list[dict]` — `{"name","gltf","digest","resmap"}`.
   - `main(argv=None) -> int` — argparse entrypoint.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `tests/test_cli.py`:
 
@@ -874,12 +874,12 @@ def test_detect_none_returns_empty(tmp_path):
     assert detect_characters("two robots fight", root) == []
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd /home/theta/.vault/repos/scenharnist && python -m pytest tests/test_cli.py -q`
 Expected: FAIL (module `scenharnist.cli` not found).
 
-- [ ] **Step 3: Write `scenharnist/cli.py`**
+- [x] **Step 3: Write `scenharnist/cli.py`**
 
 ```python
 import argparse, os, sys
@@ -932,17 +932,17 @@ if __name__ == "__main__":
     raise SystemExit(main())
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd /home/theta/.vault/repos/scenharnist && python -m pytest tests/test_cli.py -q`
 Expected: PASS (3 passed).
 
-- [ ] **Step 5: Run the full suite**
+- [x] **Step 5: Run the full suite**
 
 Run: `cd /home/theta/.vault/repos/scenharnist && python -m pytest -q`
 Expected: all pass (Blender/waifus-gated tests may SKIP).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 cd /home/theta/.vault/repos/scenharnist
@@ -960,7 +960,7 @@ git commit -m "feat: CLI with character detection"
 
 **Interfaces:** none (packaging only).
 
-- [ ] **Step 1: Write `flake.nix`**
+- [x] **Step 1: Write `flake.nix`**
 
 Provides a dev shell + `nix run` app with Python (litellm) and Blender on PATH. Mirror `waifus.gltf`'s platform matrix.
 
@@ -998,12 +998,12 @@ Provides a dev shell + `nix run` app with Python (litellm) and Blender on PATH. 
 }
 ```
 
-- [ ] **Step 2: Verify the flake evaluates** (if nix available)
+- [x] **Step 2: Verify the flake evaluates** (if nix available)
 
 Run: `cd /home/theta/.vault/repos/scenharnist && nix flake check 2>&1 | tail -5 || echo "nix not available — skip"`
 Expected: no evaluation errors (or skip if `litellm` is not in the pinned nixpkgs — in that case fall back to documenting `pip install -e .` in the README and drop `p.litellm` from the flake, keeping Blender).
 
-- [ ] **Step 3: Write `README.md`**
+- [x] **Step 3: Write `README.md`**
 
 ````markdown
 # scenharnist
@@ -1046,7 +1046,7 @@ Blender on PATH; a vision+tool-call capable model. Tests: `python -m pytest -q`
 (Blender/database-dependent tests skip when unavailable).
 ````
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 cd /home/theta/.vault/repos/scenharnist

@@ -15,7 +15,10 @@ def test_digest_surfaces_humanoid_bones():
 def test_resolution_table_roundtrips_to_cjk():
     rt = resolution_table(AUG)
     assert rt["bones"]["Head"] == "頭"
-    assert rt["bones"]["Leg.L"] == "足.L"
+    # Leg/Knee/Ankle reroute to the MMD D-chain — those are the bones with skin
+    # weights; rotating the FK controllers (足/ひざ/足首) wouldn't deform the mesh.
+    assert rt["bones"]["Leg.L"] == "足D.L"
+    assert rt["bones"]["Knee.R"] == "ひざD.R"
 
 @pytest.mark.skipif(not os.path.exists(AUG), reason="waifus.gltf not present")
 def test_digest_morphs_are_english():

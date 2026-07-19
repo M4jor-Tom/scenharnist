@@ -16,17 +16,40 @@ def _load(gltf_path):
     with open(gltf_path, encoding="utf-8") as f:
         return json.load(f)
 
+_D_CHAIN = {"Leg", "Knee", "Ankle"}  # MMD skin weights ride the D-siblings, not the FK controllers
+
+def _d_sibling(cjk):
+    """CJK D-sibling: 足.R -> 足D.R, 左ひざ -> 左ひざD. None if no side marker found."""
+    for suf in (".L", ".R"):
+        if cjk.endswith(suf):
+            return cjk[:-len(suf)] + "D" + suf
+    for pre in ("左", "右"):
+        if cjk.startswith(pre):
+            return cjk + "D"
+    return None
+
 def _bone_pairs(d):
-    """Yield (english, cjk) for skin joints whose English base is a control bone."""
+    """Yield (english, cjk) for skin joints whose English base is a control bone.
+
+    For Leg/Knee/Ankle, reroute the CJK target to the D-chain sibling (足D/ひざD/足首D)
+    when present — the FK controllers (足/ひざ/足首) don't carry skin weights, so
+    rotating them wouldn't deform the mesh.
+    """
     if not d.get("skins"):
         return
     joints = d["skins"][0]["joints"]
-    for ji in joints:
-        cjk = d["nodes"][ji].get("name", "")
-        en = translate_bone(cjk)
+    joint_names = {d["nodes"][ji].get("name", "") for ji in joints}
+    for name in joint_names:
+        en = translate_bone(name)
         base, _ = strip_side(en)
-        if base in CONTROL_BONES:
-            yield en, cjk
+        if base not in CONTROL_BONES:
+            continue
+        cjk = name
+        if base in _D_CHAIN:
+            d_cjk = _d_sibling(name)
+            if d_cjk and d_cjk in joint_names:
+                cjk = d_cjk
+        yield en, cjk
 
 def _morph_pairs(d):
     """Yield (english, cjk) for named morph targets present in MORPH_MAP."""

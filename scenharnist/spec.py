@@ -11,6 +11,10 @@ discipline of a good clip, not just syntax:
   the clip ENDS in guard.
 - Punches move the whole upper body: the striking Arm/Elbow plus an UpperBody
   lean, not one bone in isolation.
+- Every control-surface bone is either moved in bone_tracks OR justified in
+  skipped_bones with a per-bone reason string. Use the wildcard "*" as a
+  catch-all reason for any remaining bones. Default is MOVE; skipping needs a
+  reason.
 - Angles are local euler_deg; world coords (camera, root translation) are
   Y-up with the character facing +Z.
 """
@@ -45,8 +49,12 @@ EXAMPLE_SPEC = {
                 "UpperBody": _k((0.0, [0, 0, 0]), (0.3, [6, 0, 0]), (0.6, [10, -6, 0]), (0.9, [6, 0, 0]),
                                 (1.5, [10, -6, 0]), (1.8, [6, 0, 0]), (2.3, [9, -10, 0]), (2.7, [6, 0, 0]),
                                 (3.0, [6, 0, 0])),
+                # Soft-knee athletic stance for the whole clip (Knee X+ = mild flex).
+                "Knee.R": _k((0.0, [0, 0, 0]), (0.3, [10, 0, 0]), (3.0, [10, 0, 0])),
+                "Knee.L": _k((0.0, [0, 0, 0]), (0.3, [10, 0, 0]), (3.0, [10, 0, 0])),
             },
             "morph_tracks": {"Anger": [{"t": 0.0, "weight": 0.2}, {"t": 3.0, "weight": 0.5}]},
+            "skipped_bones": {"*": "planted stance; remaining rig stays at rest for this beat"},
         },
         {
             "name": "Baizhi",
@@ -61,8 +69,11 @@ EXAMPLE_SPEC = {
                 "Elbow.L": _k((0.0, [0, 0, 0]), (0.3, _GUARD["Elbow.L"]), (3.0, _GUARD["Elbow.L"])),
                 "UpperBody": _k((0.0, [0, 0, 0]), (0.3, [6, 0, 0]), (0.6, [-6, 0, 0]), (0.9, [6, 0, 0]),
                                 (1.2, [10, 6, 0]), (1.5, [6, 0, 0]), (3.0, [6, 0, 0])),
+                "Knee.R": _k((0.0, [0, 0, 0]), (0.3, [10, 0, 0]), (3.0, [10, 0, 0])),
+                "Knee.L": _k((0.0, [0, 0, 0]), (0.3, [10, 0, 0]), (3.0, [10, 0, 0])),
             },
             "morph_tracks": {},
+            "skipped_bones": {"*": "planted stance; remaining rig stays at rest for this beat"},
         },
     ],
     "camera": [{"t": 0.0, "position": [0, 1.2, 3.7], "look_at": [0, 1.02, 0]}],
@@ -109,10 +120,25 @@ def validate(spec, surfaces):
         if surf is None:
             errs.append(f"unknown character '{cname}' (available: {list(surfaces)})")
             continue
-        for bone, frames in (c.get("bone_tracks") or {}).items():
+        tracks = c.get("bone_tracks") or {}
+        skipped = c.get("skipped_bones") or {}
+        for bone, frames in tracks.items():
             check_track(cname, "bone", bone, surf["bones"], frames, "euler_deg",
                         lambda v: isinstance(v, list) and len(v) == 3 and all(_num(x) for x in v))
         for morph, frames in (c.get("morph_tracks") or {}).items():
             check_track(cname, "morph", morph, surf["morphs"], frames, "weight",
                         lambda v: _num(v) and 0 <= v <= 1)
+        # skipped_bones: each key is a control-surface bone (or "*" wildcard), each value
+        # a non-empty string reason. Anything NOT in tracks or skipped is an error —
+        # skipping needs a justification, the default is to move.
+        for bone, reason in skipped.items():
+            if bone != "*" and bone not in surf["bones"]:
+                errs.append(f"{cname}: unknown skipped_bones '{bone}' (not in control surface)")
+            if not isinstance(reason, str) or not reason.strip():
+                errs.append(f"{cname}: skipped_bones[{bone!r}] must be a non-empty reason string")
+        if "*" not in skipped:
+            uncovered = [b for b in surf["bones"] if b not in tracks and b not in skipped]
+            if uncovered:
+                errs.append(f"{cname}: bones must move or be in skipped_bones with a reason: "
+                            f"{sorted(uncovered)}")
     return errs

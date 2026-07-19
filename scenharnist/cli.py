@@ -1,6 +1,7 @@
 import argparse, os, sys
 from .rigdigest import digest, resolution_table
 from .loop import run_loop
+from .paths import resolve_gltf_root
 
 def detect_characters(prompt, gltf_root):
     gdir = os.path.join(gltf_root, "gltf")
@@ -31,16 +32,17 @@ def main(argv=None):
     ap.add_argument("--out", required=True)
     ap.add_argument("--chars", nargs="*", default=None)
     ap.add_argument("--max-steps", type=int, default=5)
-    ap.add_argument("--gltf-root", default=os.path.expanduser("~/.vault/repos/waifus.gltf"))
+    ap.add_argument("--gltf-root", default=None)
     a = ap.parse_args(argv)
 
-    names = a.chars or detect_characters(a.prompt, a.gltf_root)
+    gltf_root = resolve_gltf_root(a.gltf_root)
+    names = a.chars or detect_characters(a.prompt, gltf_root)
     if not names:
         print("No characters detected; pass --chars.", file=sys.stderr)
         return 2
     print(f"Characters: {names}")
-    chars = build_characters(names, a.gltf_root)
-    spec = run_loop(a.prompt, chars, a.model, a.out, a.gltf_root, a.max_steps)
+    chars = build_characters(names, gltf_root)
+    spec = run_loop(a.prompt, chars, a.model, a.out, gltf_root, a.max_steps)
     print(f"Done. Outputs in {a.out}/ (scene.glb, preview.mp4, scene.json)")
     return 0
 

@@ -33,7 +33,7 @@
 - Produces: `resolve_gltf_root(explicit: str | None = None) -> str`.
 - Consumes: nothing from other tasks.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `tests/test_paths.py`:
 
@@ -76,12 +76,12 @@ def _mkroot(tmp_path):
     return str(tmp_path)
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `bash .superpowers/sdd/pytest.sh tests/test_paths.py -q`
 Expected: FAIL (module `scenharnist.paths` not found).
 
-- [ ] **Step 3: Write `scenharnist/paths.py`**
+- [x] **Step 3: Write `scenharnist/paths.py`**
 
 ```python
 import os
@@ -106,12 +106,12 @@ def resolve_gltf_root(explicit=None):
         "no gltf database found (need <root>/gltf/); tried: " + ", ".join(tried or ["<none>"]))
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `bash .superpowers/sdd/pytest.sh tests/test_paths.py -q`
 Expected: PASS (4 passed).
 
-- [ ] **Step 5: Wire the resolver into `scenharnist/cli.py`**
+- [x] **Step 5: Wire the resolver into `scenharnist/cli.py`**
 
 In `scenharnist/cli.py`, add the import near the top (after the existing imports):
 
@@ -142,12 +142,12 @@ Replace the body of `main` from the `names = ...` line through the `run_loop` ca
 
 (Delete the old `os.path.expanduser("~/.vault/repos/waifus.gltf")` default and the old `a.gltf_root` usages.)
 
-- [ ] **Step 6: Run the full suite to confirm nothing broke**
+- [x] **Step 6: Run the full suite to confirm nothing broke**
 
 Run: `bash .superpowers/sdd/pytest.sh -q`
 Expected: all pass, 1 skipped (Blender smoke). `test_cli.py` still passes (it calls `detect_characters` with an explicit root, unaffected).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 cd /home/theta/.vault/repos/scenharnist
